@@ -50,6 +50,7 @@ static json portfolio_result_to_json(const PortfolioResult& result, const std::v
     j["portfolio_var"] = result.portfolio_var;
     j["portfolio_sharpe"] = result.portfolio_sharpe;
     j["net_exposure"] = result.net_exposure;
+    j["last_update_desc"] = result.last_update_desc;
 
     json positions = json::array();
     for (const auto& pos : result.positions) {

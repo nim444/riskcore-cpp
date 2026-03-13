@@ -3,6 +3,8 @@
 #include <cmath>
 #include <numeric>
 #include <chrono>
+#include <sstream>
+#include <iomanip>
 
 // Standard normal CDF using erfc
 double norm_cdf(double x) {
@@ -90,24 +92,29 @@ PortfolioResult RiskEngine::compute(std::vector<Position>& positions,
 
     // Portfolio Sharpe (weighted by notional)
     double total_notional = 0.0;
-    double weighted_return = 0.0;
 
+    // First pass: compute total absolute notional
+    std::vector<double> notionals;
     for (const auto& pos : positions) {
+        double notional = pos.quantity * pos.current_price;
+        if (pos.side == Side::SHORT) notional = -notional;
+        notionals.push_back(notional);
+        total_notional += std::abs(notional);
+    }
+
+    // Second pass: compute weighted return
+    double weighted_return = 0.0;
+    for (size_t i = 0; i < positions.size(); ++i) {
         MarketData* md = nullptr;
         for (auto& m : market_data) {
-            if (m.ticker == pos.ticker) {
+            if (m.ticker == positions[i].ticker) {
                 md = &m;
                 break;
             }
         }
         if (!md) continue;
 
-        double notional = pos.quantity * pos.current_price;
-        if (pos.side == Side::SHORT) notional = -notional;
-
-        double weight = notional / (notional + 1e-9);  // Avoid division by zero
-        total_notional += std::abs(notional);
-
+        double weight = notionals[i] / (total_notional + 1e-9);  // Correct: divide by total, not self
         if (!md->daily_returns.empty()) {
             double mean_return = 0.0;
             for (double r : md->daily_returns) mean_return += r;
@@ -120,7 +127,8 @@ PortfolioResult RiskEngine::compute(std::vector<Position>& positions,
         double annualised_return = weighted_return * 252.0;
         // Estimate portfolio vol from correlation
         double portfolio_var_frac = result.portfolio_var / total_notional;
-        double portfolio_vol = portfolio_var_frac / 1.645;  // Reverse from 95% VaR
+        double daily_vol = portfolio_var_frac / 1.645;  // Reverse from 95% VaR
+        double portfolio_vol = daily_vol * std::sqrt(252.0);  // Annualize
         result.portfolio_sharpe = (annualised_return - 0.045) / (portfolio_vol + 1e-9);
     } else {
         result.portfolio_sharpe = 0.0;
@@ -135,6 +143,25 @@ PortfolioResult RiskEngine::compute(std::vector<Position>& positions,
 
     auto end = std::chrono::high_resolution_clock::now();
     result.calc_time_ms = std::chrono::duration<double, std::milli>(end - start).count();
+
+    // Generate descriptive update message
+    std::ostringstream desc;
+    if (!result.positions.empty()) {
+        // Pick the position with highest absolute Greeks change
+        int max_greek_idx = 0;
+        double max_delta = std::abs(result.positions[0].greeks.delta);
+        for (size_t i = 1; i < result.positions.size(); ++i) {
+            double delta = std::abs(result.positions[i].greeks.delta);
+            if (delta > max_delta) {
+                max_delta = delta;
+                max_greek_idx = i;
+            }
+        }
+        const auto& top_pos = result.positions[max_greek_idx];
+        desc << top_pos.ticker << " Greeks recalculated (δ=" << std::fixed << std::setprecision(3)
+             << top_pos.greeks.delta << ", Sharpe=" << std::setprecision(2) << top_pos.sharpe_ratio << ")";
+    }
+    result.last_update_desc = desc.str();
 
     return result;
 }

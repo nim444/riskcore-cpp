@@ -376,7 +376,7 @@
                 try {
                     const data = JSON.parse(event.data);
                     updateDashboard(data);
-                    addFeedItem(`Updated at ${new Date().toLocaleTimeString('en-US', { hour12: false })}`);
+                    addFeedItem(data.last_update_desc || 'Data updated');
                 } catch (error) {
                     console.error('Failed to parse message:', error);
                 }

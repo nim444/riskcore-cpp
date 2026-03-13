@@ -44,4 +44,5 @@ struct PortfolioResult {
     std::vector<std::vector<double>> correlation_matrix;
     double calc_time_ms;
     std::string timestamp;
+    std::string last_update_desc;  // e.g. "Portfolio VaR updated → $128,446"
 };
