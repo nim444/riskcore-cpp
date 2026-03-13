@@ -18,8 +18,14 @@ High-performance C++ equity risk analytics engine with real-time WebSocket strea
 - Annualized Sharpe ratio (risk-free rate = 4.5%)
 - Pearson correlation matrix and variance-covariance portfolio VaR
 - Real-time WebSocket streaming (updates every 2 seconds)
-- Live risk trend visualization (60-point rolling window)
-- Interactive dashboard with metrics cards, charts, position table, and Greeks analysis
+- **Enhanced dashboard** with 4 live chart panels:
+  - Portfolio VaR rolling trend (60-point buffer, ±2% jitter for realism, dynamic Y-axis zoom)
+  - Sharpe ratio rolling chart with 0.5 target reference line
+  - Per-ticker VaR heatmap (sorted by risk, 4-tier colour contrast)
+  - P&L analysis with $ / % toggle (horizontal bars, all 8 positions readable)
+- Live stat boxes: VaR delta, VaR/Exposure ratio, peak VaR, Sharpe trend
+- Rotating live feed (random ticker updates with delta, VaR, Sharpe per update)
+- Interactive dashboard with position table, Greeks analysis, correlation matrix
 - Professional dark theme UI with compact, responsive layout
 - C++20 with zero external math dependencies (pure STL algorithms)
 - Sub-millisecond computation cycle

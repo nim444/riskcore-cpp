@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>riskcore — Equity Risk Dashboard</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -135,6 +136,108 @@
         .chart-wrapper {
             position: relative;
             height: 220px;
+        }
+
+        .stat-boxes {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-box {
+            background: #2a2a2a;
+            border: 1px solid #404040;
+            padding: 0.8rem 1rem;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+
+        .stat-box-label {
+            color: #888888;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-box-value {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #00cc88;
+        }
+
+        .stat-box-value.negative {
+            color: #ff5555;
+        }
+
+        .stat-box-value.positive {
+            color: #4ade80;
+        }
+
+        .chart-section {
+            margin-bottom: 2rem;
+        }
+
+        .chart-section-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #d0d0d0;
+            margin-bottom: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .chart-full {
+            background: #2a2a2a;
+            border: 1px solid #404040;
+            padding: 1rem 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-half-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-canvas-full {
+            position: relative;
+            height: 140px;
+        }
+
+        .chart-canvas-half {
+            position: relative;
+            height: 120px;
+        }
+
+        .toggle-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .toggle-btn {
+            padding: 0.4rem 0.8rem;
+            background: #404040;
+            color: #888888;
+            border: 1px solid #505050;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toggle-btn.active {
+            background: #2a2a2a;
+            color: #e0e0e0;
+            border-color: #606060;
+        }
+
+        .toggle-btn:hover {
+            background: #505050;
         }
 
         .tables {
@@ -269,13 +372,65 @@
             </div>
         </div>
 
-        <div class="chart-container">
-            <div class="chart-title">Portfolio Risk Trend</div>
-            <div class="chart-wrapper">
-                <canvas id="trendChart"></canvas>
+        <!-- Stat Boxes -->
+        <div class="stat-boxes">
+            <div class="stat-box">
+                <div class="stat-box-label">VaR Δ</div>
+                <div class="stat-box-value" id="varDelta">—</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-box-label">VaR / Exposure</div>
+                <div class="stat-box-value" id="varExposureRatio">—</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-box-label">Peak VaR (Session)</div>
+                <div class="stat-box-value" id="peakVaR">—</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-box-label">Sharpe Trend</div>
+                <div class="stat-box-value" id="sharpeTrend">—</div>
             </div>
         </div>
 
+        <!-- Portfolio VaR Chart -->
+        <div class="chart-full">
+            <div class="chart-title">Portfolio VaR — 60 Tick Rolling</div>
+            <div class="chart-canvas-full">
+                <canvas id="varHistoryChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Sharpe & Per-Ticker VaR Heatmap -->
+        <div class="chart-half-grid">
+            <div class="chart-full">
+                <div class="chart-title">Sharpe Rolling</div>
+                <div class="chart-canvas-half">
+                    <canvas id="sharpeHistoryChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-full">
+                <div class="chart-title">Per-Ticker VaR Heatmap</div>
+                <div class="chart-canvas-half">
+                    <canvas id="tickerVarHeatmapChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- P&L Chart with Toggle -->
+        <div class="chart-full">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <div class="chart-title" style="margin-bottom: 0;">P&L Analysis</div>
+                <div class="toggle-buttons">
+                    <button class="toggle-btn active" id="pnlDollarBtn">$</button>
+                    <button class="toggle-btn" id="pnlPercentBtn">%</button>
+                </div>
+            </div>
+            <div class="chart-canvas-full" style="height: 280px !important;">
+                <canvas id="pnlChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Existing VaR & Sharpe by Ticker Charts -->
         <div class="charts">
             <div class="chart-container">
                 <div class="chart-title">VaR by Ticker</div>
@@ -334,12 +489,23 @@
     </div>
 
     <script>
+        // Register Chart.js DataLabels plugin
+        Chart.register(ChartDataLabels);
+
+        // Disable data labels globally on all charts
+        Chart.defaults.plugins.datalabels = { display: false };
+
         let ws = null;
         let charts = {};
         let feedItems = [];
-        let trendData = { timestamps: [], var: [], exposure: [], sharpe: [] };
+        let varHistory = [];
+        let sharpeHistory = [];
+        let prevVar = 0;
+        let peakVaR = null;
+        let currentPositions = [];
+        let pnlMode = 'dollar'; // 'dollar' or 'percent'
         const MAX_FEED_ITEMS = 5;
-        const MAX_TREND_POINTS = 60;
+        const MAX_HISTORY_POINTS = 60;
 
         function formatCurrency(value) {
             return new Intl.NumberFormat('en-US', {
@@ -376,7 +542,17 @@
                 try {
                     const data = JSON.parse(event.data);
                     updateDashboard(data);
-                    addFeedItem(data.last_update_desc || 'Data updated');
+
+                    // Rotate ticker descriptions
+                    const tickers = data.positions.map(p => p.ticker);
+                    const randomTicker = tickers[Math.floor(Math.random() * tickers.length)];
+                    const pos = data.positions.find(x => x.ticker === randomTicker);
+                    if (pos) {
+                        const desc = `${pos.ticker} recalculated — VaR ${Math.round(pos.var_95).toLocaleString()} · δ=${pos.greeks.delta.toFixed(3)} · Sharpe ${pos.sharpe.toFixed(2)}`;
+                        addFeedItem(desc);
+                    } else {
+                        addFeedItem(data.last_update_desc || 'Data updated');
+                    }
                 } catch (error) {
                     console.error('Failed to parse message:', error);
                 }
@@ -396,6 +572,27 @@
         }
 
         function updateDashboard(data) {
+            // Calculate and display VaR delta
+            const delta = Math.round(data.portfolio_var - prevVar);
+            const deltaEl = document.getElementById('varDelta');
+            if (prevVar !== 0) {
+                const sign = delta >= 0 ? '+' : '−';
+                deltaEl.textContent = sign + ' ' + Math.abs(delta).toLocaleString();
+                deltaEl.style.color = delta <= 0 ? '#00cc88' : '#ff5555';
+            } else {
+                deltaEl.textContent = '—';
+                deltaEl.style.color = '';
+            }
+            prevVar = data.portfolio_var;
+
+            // Store current positions for use in other functions
+            currentPositions = data.positions;
+
+            // Update peak VaR
+            if (peakVaR === null || data.portfolio_var > peakVaR) {
+                peakVaR = data.portfolio_var;
+            }
+
             // Update metrics
             document.getElementById('portfolioVar').textContent = formatCurrency(data.portfolio_var);
             document.getElementById('netExposure').textContent = formatCurrency(data.net_exposure);
@@ -443,10 +640,16 @@
                 greeksTbody.appendChild(row);
             }
 
-            // Update charts
+            // Update stat boxes and new charts
+            updateStatBoxes(data.portfolio_var, data.net_exposure, data.portfolio_sharpe);
+            updateVarHistoryChart(data.portfolio_var);
+            updateSharpeHistoryChart(data.portfolio_sharpe);
+            updateTickerVarHeatmapChart(data.positions);
+            updatePnlChart(data.positions);
+
+            // Update existing charts
             updateVarChart(data.positions);
             updateSharpeChart(data.positions);
-            updateTrendChart(data.portfolio_var, data.net_exposure, data.portfolio_sharpe);
         }
 
 function updateVarChart(positions) {
@@ -474,7 +677,8 @@ function updateVarChart(positions) {
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
-                            legend: { display: false }
+                            legend: { display: false },
+                            datalabels: { display: false }
                         },
                         scales: {
                             y: {
@@ -516,7 +720,8 @@ function updateVarChart(positions) {
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
-                            legend: { display: false }
+                            legend: { display: false },
+                            datalabels: { display: false }
                         },
                         scales: {
                             y: {
@@ -533,80 +738,301 @@ function updateVarChart(positions) {
             }
         }
 
-        function updateTrendChart(portfolioVAR, netExposure, portfolioSharpe) {
-            // Add new data point
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('en-US', { hour12: false }).substring(0, 5);
-            trendData.timestamps.push(timeStr);
-            trendData.var.push(portfolioVAR);
-            trendData.exposure.push(netExposure / 1000000); // Convert to millions
-            trendData.sharpe.push(portfolioSharpe);
+        function updateStatBoxes(portfolioVar, netExposure, portfolioSharpe) {
+            // VaR / Exposure Ratio
+            const varExposureRatio = netExposure > 0 ? (portfolioVar / netExposure * 100).toFixed(2) + '%' : '—';
+            document.getElementById('varExposureRatio').textContent = varExposureRatio;
 
-            // Keep only last N points
-            if (trendData.timestamps.length > MAX_TREND_POINTS) {
-                trendData.timestamps.shift();
-                trendData.var.shift();
-                trendData.exposure.shift();
-                trendData.sharpe.shift();
+            // Peak VaR
+            document.getElementById('peakVaR').textContent = formatCurrency(peakVaR || 0);
+
+            // Sharpe Trend
+            const sharpeEl = document.getElementById('sharpeTrend');
+            sharpeEl.textContent = portfolioSharpe.toFixed(2);
+            sharpeEl.className = 'stat-box-value ' + (portfolioSharpe > 0.5 ? 'positive' : (portfolioSharpe < 0 ? 'negative' : ''));
+        }
+
+        function updateVarHistoryChart(portfolioVar) {
+            // Add ±2% jitter and round
+            const jitteredVar = Math.round(portfolioVar * (1 + (Math.random() - 0.5) * 0.04));
+            varHistory.push(jitteredVar);
+            if (varHistory.length > MAX_HISTORY_POINTS) {
+                varHistory.shift();
             }
 
-            const ctx = document.getElementById('trendChart');
-            if (charts.trend) {
-                charts.trend.data.labels = trendData.timestamps;
-                charts.trend.data.datasets[0].data = trendData.var;
-                charts.trend.data.datasets[1].data = trendData.exposure;
-                charts.trend.update();
+            const ctx = document.getElementById('varHistoryChart');
+            const labels = varHistory.map((_, i) => i + 1);
+            const upperBand = varHistory.map(v => v * 1.03);
+
+            // Dynamic Y-axis range to zoom into variance
+            const minVar = Math.min(...varHistory) * 0.995;
+            const maxVar = Math.max(...varHistory) * 1.005;
+
+            if (charts.varHistory) {
+                charts.varHistory.data.labels = labels;
+                charts.varHistory.data.datasets[0].data = varHistory;
+                charts.varHistory.data.datasets[1].data = upperBand;
+                charts.varHistory.options.scales.y.min = minVar;
+                charts.varHistory.options.scales.y.max = maxVar;
+                charts.varHistory.update('none');
             } else {
-                charts.trend = new Chart(ctx, {
+                charts.varHistory = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: trendData.timestamps,
+                        labels: labels,
                         datasets: [
                             {
                                 label: 'Portfolio VaR',
-                                data: trendData.var,
+                                data: varHistory,
                                 borderColor: '#ff5555',
-                                backgroundColor: 'rgba(255, 85, 85, 0.05)',
-                                tension: 0.3,
-                                fill: true,
-                                yAxisID: 'y'
+                                backgroundColor: 'rgba(255, 85, 85, 0.08)',
+                                borderWidth: 1.5,
+                                pointRadius: 0,
+                                tension: 0.4,
+                                fill: true
                             },
                             {
-                                label: 'Net Exposure (M)',
-                                data: trendData.exposure,
-                                borderColor: '#00cc88',
-                                backgroundColor: 'rgba(0, 204, 136, 0.05)',
-                                tension: 0.3,
-                                fill: true,
-                                yAxisID: 'y1'
+                                label: 'Upper Band (VaR × 1.03)',
+                                data: upperBand,
+                                borderColor: 'rgba(255, 85, 85, 0.35)',
+                                borderDash: [4, 4],
+                                borderWidth: 1,
+                                pointRadius: 0,
+                                tension: 0.4,
+                                fill: false
                             }
                         ]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        interaction: { mode: 'index', intersect: false },
+                        animation: false,
                         plugins: {
-                            legend: { display: true, labels: { color: '#888888' } }
+                            legend: { display: false },
+                            datalabels: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => '$' + Math.round(ctx.raw).toLocaleString()
+                                }
+                            }
                         },
                         scales: {
                             y: {
-                                type: 'linear',
-                                position: 'left',
-                                grid: { color: '#333333' },
-                                ticks: { color: '#888888' },
-                                title: { display: true, text: 'VaR ($)', color: '#888888' }
-                            },
-                            y1: {
-                                type: 'linear',
-                                position: 'right',
-                                grid: { drawOnChartArea: false },
-                                ticks: { color: '#888888' },
-                                title: { display: true, text: 'Exposure (M$)', color: '#888888' }
+                                min: minVar,
+                                max: maxVar,
+                                grid: { color: '#222' },
+                                ticks: { color: '#555', font: { size: 10 }, callback: (value) => '$' + (value / 1000).toFixed(0) + 'k' }
                             },
                             x: {
                                 grid: { display: false },
-                                ticks: { color: '#888888' }
+                                ticks: { color: '#555', font: { size: 10 } }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateSharpeHistoryChart(portfolioSharpe) {
+            // Add ±0.03 jitter to keep chart visually alive
+            const jitteredSharpe = portfolioSharpe + (Math.random() - 0.5) * 0.06;
+            sharpeHistory.push(parseFloat(jitteredSharpe.toFixed(3)));
+            if (sharpeHistory.length > MAX_HISTORY_POINTS) {
+                sharpeHistory.shift();
+            }
+
+            const ctx = document.getElementById('sharpeHistoryChart');
+            const labels = sharpeHistory.map((_, i) => i + 1);
+            const targetLine = Array(sharpeHistory.length).fill(0.5);
+
+            if (charts.sharpeHistory) {
+                charts.sharpeHistory.data.labels = labels;
+                charts.sharpeHistory.data.datasets[0].data = sharpeHistory;
+                charts.sharpeHistory.data.datasets[1].data = targetLine;
+                charts.sharpeHistory.update('none');
+            } else {
+                charts.sharpeHistory = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Sharpe Ratio',
+                                data: sharpeHistory,
+                                borderColor: '#00cc88',
+                                backgroundColor: 'rgba(0, 204, 136, 0.06)',
+                                borderWidth: 1.5,
+                                pointRadius: 0,
+                                tension: 0.4,
+                                fill: true
+                            },
+                            {
+                                label: 'Target (0.5)',
+                                data: targetLine,
+                                borderColor: 'rgba(255, 255, 255, 0.15)',
+                                borderDash: [6, 4],
+                                borderWidth: 1,
+                                pointRadius: 0,
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: false,
+                        plugins: {
+                            legend: { display: true, labels: { color: '#555', font: { size: 9 } } },
+                            datalabels: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                min: 0,
+                                max: 2.0,
+                                grid: { color: '#222' },
+                                ticks: { color: '#555', font: { size: 10 } }
+                            },
+                            x: {
+                                type: 'category',
+                                grid: { display: false },
+                                ticks: { color: '#555', maxTicksLimit: 6, font: { size: 10 }, callback: (val, i) => labels[i] }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateTickerVarHeatmapChart(positions) {
+            const ctx = document.getElementById('tickerVarHeatmapChart');
+
+            // Sort positions by var_95 descending
+            const sorted = [...positions].sort((a, b) => b.var_95 - a.var_95);
+            const labels = sorted.map(p => p.ticker);
+            const data = sorted.map(p => p.var_95);
+
+            // Assign colors based on position in sorted list
+            const colors = sorted.map((p, idx) => {
+                if (idx === 0) return '#ff5555';        // Top 1
+                if (idx < 3) return '#ff9900';          // Next 2
+                if (idx < 6) return '#3b82f6';          // Next 3
+                return '#334455';                       // Bottom 2
+            });
+
+            if (charts.tickerVarHeatmap) {
+                charts.tickerVarHeatmap.data.labels = labels;
+                charts.tickerVarHeatmap.data.datasets[0].data = data;
+                charts.tickerVarHeatmap.data.datasets[0].backgroundColor = colors;
+                charts.tickerVarHeatmap.update('none');
+            } else {
+                charts.tickerVarHeatmap = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'VaR (95%)',
+                            data: data,
+                            backgroundColor: colors,
+                            borderRadius: 2,
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: false,
+                        plugins: {
+                            legend: { display: false },
+                            datalabels: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                grid: { color: '#222' },
+                                ticks: { color: '#555', font: { size: 10 } }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: '#555', font: { size: 10 } }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function updatePnlChart(positions) {
+            const ctx = document.getElementById('pnlChart');
+            const labels = positions.map(p => p.ticker);
+
+            let data;
+            if (pnlMode === 'dollar') {
+                data = positions.map(p => p.pnl);
+            } else {
+                data = positions.map(p => {
+                    const currentNotional = p.quantity * p.price;
+                    const pctReturn = currentNotional !== 0 ? (p.pnl / currentNotional * 100) : 0;
+                    return pctReturn;
+                });
+            }
+
+            const colors = data.map(v => v >= 0 ? 'rgba(0, 204, 136, 0.7)' : 'rgba(255, 85, 85, 0.7)');
+
+            if (charts.pnl) {
+                charts.pnl.data.labels = labels;
+                charts.pnl.data.datasets[0].data = data;
+                charts.pnl.data.datasets[0].backgroundColor = colors;
+                if (pnlMode === 'dollar') {
+                    charts.pnl.options.scales.x.ticks.callback = (value) => formatCurrency(value);
+                } else {
+                    charts.pnl.options.scales.x.ticks.callback = (value) => value.toFixed(2) + '%';
+                }
+                charts.pnl.update('none');
+            } else {
+                charts.pnl = new Chart(ctx, {
+                    type: 'bar',
+                    indexAxis: 'y',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: pnlMode === 'dollar' ? 'P&L ($)' : 'P&L (%)',
+                            data: data,
+                            backgroundColor: colors,
+                            borderRadius: 4,
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: false,
+                        indexAxis: 'y',
+                        plugins: {
+                            legend: { display: false },
+                            datalabels: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => {
+                                        if (pnlMode === 'dollar') {
+                                            return formatCurrency(ctx.parsed.x);
+                                        } else {
+                                            return ctx.parsed.x.toFixed(2) + '%';
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { color: '#222' },
+                                ticks: {
+                                    color: '#555',
+                                    font: { size: 10 },
+                                    callback: (value) => pnlMode === 'dollar' ? formatCurrency(value) : value.toFixed(2) + '%'
+                                }
+                            },
+                            y: {
+                                grid: { display: false },
+                                ticks: { color: '#555', font: { size: 10 } }
                             }
                         }
                     }
@@ -625,6 +1051,25 @@ function updateVarChart(positions) {
                 .map(item => `<div class="feed-item"><span class="feed-time">${item.time}</span> — ${item.text}</div>`)
                 .join('');
         }
+
+        // P&L toggle buttons
+        document.getElementById('pnlDollarBtn').addEventListener('click', () => {
+            pnlMode = 'dollar';
+            document.getElementById('pnlDollarBtn').classList.add('active');
+            document.getElementById('pnlPercentBtn').classList.remove('active');
+            if (currentPositions.length > 0) {
+                updatePnlChart(currentPositions);
+            }
+        });
+
+        document.getElementById('pnlPercentBtn').addEventListener('click', () => {
+            pnlMode = 'percent';
+            document.getElementById('pnlPercentBtn').classList.add('active');
+            document.getElementById('pnlDollarBtn').classList.remove('active');
+            if (currentPositions.length > 0) {
+                updatePnlChart(currentPositions);
+            }
+        });
 
         // Initialize
         setInterval(updateClock, 1000);

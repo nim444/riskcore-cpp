@@ -2,49 +2,49 @@
   {
     "ticker": "IBM",
     "side": "LONG",
-    "quantity": 5000,
+    "quantity": 3000,
     "entry_price": 239.84
   },
   {
     "ticker": "GOOG",
     "side": "LONG",
-    "quantity": 3000,
+    "quantity": 1500,
     "entry_price": 164.16
   },
   {
     "ticker": "NVDA",
-    "side": "LONG",
-    "quantity": 2000,
+    "side": "SHORT",
+    "quantity": 500,
     "entry_price": 115.55
   },
   {
     "ticker": "MSFT",
-    "side": "SHORT",
-    "quantity": 4000,
+    "side": "LONG",
+    "quantity": 1200,
     "entry_price": 375.89
   },
   {
     "ticker": "AAPL",
     "side": "LONG",
-    "quantity": 3500,
+    "quantity": 2000,
     "entry_price": 208.77
   },
   {
     "ticker": "TSLA",
-    "side": "LONG",
-    "quantity": 1500,
+    "side": "SHORT",
+    "quantity": 800,
     "entry_price": 240.68
   },
   {
     "ticker": "AMZN",
-    "side": "SHORT",
-    "quantity": 2000,
+    "side": "LONG",
+    "quantity": 1800,
     "entry_price": 193.89
   },
   {
     "ticker": "META",
     "side": "LONG",
-    "quantity": 2500,
+    "quantity": 600,
     "entry_price": 588.78
   }
 ]
