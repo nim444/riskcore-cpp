@@ -5,44 +5,64 @@
 ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
 ![GitHub Actions](https://img.shields.io/badge/github%20actions-%232671E5.svg?style=for-the-badge&logo=githubactions&logoColor=white)
 
-High-performance C++ equity risk analytics engine with real-time WebSocket streaming and interactive web dashboard. Compute Value-at-Risk (VaR), Greeks, Sharpe ratios, and portfolio metrics for live positions.
+**High-performance C++ equity risk analytics engine** with real-time WebSocket streaming and live web dashboard. Compute 95% Value-at-Risk, Black-Scholes Greeks, and portfolio metrics with **sub-millisecond latency**.
 
-**Live Portfolio**: IBM, GOOG, NVDA, MSFT, AAPL, TSLA, AMZN, META (~$4.1M exposure)
+![riskcore Dashboard](demo1.png)
 
-![riskcore Dashboard](demo.png)
+## Overview
 
-## Highlights
+riskcore-cpp delivers institutional-grade portfolio risk analytics:
+- **95% Historical VaR** (1-day, per position and portfolio)
+- **Black-Scholes Greeks** (delta, gamma, vega, theta for ATM options)
+- **Sharpe Ratio** (annualized with 4.5% risk-free rate)
+- **Variance-Covariance Portfolio VaR** with Pearson correlation matrix
+- **Real-time Dashboard** with 4 interactive chart panels and live metrics
 
-- 95% historical Value-at-Risk (VaR) per position and portfolio
-- Black-Scholes Greeks (delta, gamma, vega, theta) for ATM options
-- Annualized Sharpe ratio (risk-free rate = 4.5%)
-- Pearson correlation matrix and variance-covariance portfolio VaR
-- Real-time WebSocket streaming (updates every 2 seconds)
-- **Enhanced dashboard** with 4 live chart panels:
-  - Portfolio VaR rolling trend (60-point buffer, ±2% jitter for realism, dynamic Y-axis zoom)
-  - Sharpe ratio rolling chart with 0.5 target reference line
-  - Per-ticker VaR heatmap (sorted by risk, 4-tier colour contrast)
-  - P&L analysis with $ / % toggle (horizontal bars, all 8 positions readable)
-- Live stat boxes: VaR delta, VaR/Exposure ratio, peak VaR, Sharpe trend
-- Rotating live feed (random ticker updates with delta, VaR, Sharpe per update)
-- Interactive dashboard with position table, Greeks analysis, correlation matrix
-- Professional dark theme UI with compact, responsive layout
-- C++20 with zero external math dependencies (pure STL algorithms)
-- Sub-millisecond computation cycle
+## System Architecture
 
-## Technology Stack
+```mermaid
+graph LR
+    A["Market Data<br/>yfinance"] --> B["Data Loader<br/>CSV/JSON"]
+    B --> C["Risk Engine<br/>C++20"]
+    C --> D["WebSocket Server<br/>BSD Sockets"]
+    D --> E["Web Dashboard<br/>Chart.js"]
+    C --> F["JSON Output<br/>--run mode"]
 
-| Component | Technology |
-|-----------|-----------|
-| **Core** | C++20, STL algorithms, BSD sockets |
-| **Build** | CMake 3.20+, clang++ (Apple Silicon) |
-| **JSON** | nlohmann/json (header-only via FetchContent) |
-| **Crypto** | OpenSSL (SHA1 for WebSocket handshake) |
-| **Data** | Python 3.8+, yfinance, uv package manager |
-| **Frontend** | Vanilla JS, Chart.js, CSS3 |
-| **CI/CD** | GitHub Actions (macOS runner) |
+    style C fill:#0099cc
+    style D fill:#00cc88
+    style E fill:#ff5555
+```
 
-## Getting Started
+## Computation Pipeline
+
+```mermaid
+sequenceDiagram
+    participant Market as Market Data
+    participant Engine as Risk Engine
+    participant Calc as Calculations
+    participant WS as WebSocket
+    participant UI as Dashboard
+
+    Market->>Engine: Load positions + returns
+    Engine->>Calc: VaR, Greeks, Sharpe, Correlation
+    Calc->>Engine: Results (2ms typical)
+    Engine->>WS: Broadcast JSON
+    WS->>UI: WebSocket frame
+    UI->>UI: Update 4 charts + metrics
+```
+
+## Features
+
+| Feature | Details |
+|---------|---------|
+| **Risk Metrics** | VaR 95%, Greeks, Sharpe, correlation, P&L tracking |
+| **Performance** | Sub-millisecond computation, 60-tick rolling history |
+| **Real-time Updates** | 2-second refresh cycle via WebSocket |
+| **Interactive UI** | Dark theme, responsive layout, 4 live charts |
+| **Data Pipeline** | yfinance → CSV/JSON → C++ engine |
+| **Portability** | C++20, zero external math libraries, STL only |
+
+## Quick Start
 
 ### Prerequisites
 ```bash
@@ -50,111 +70,73 @@ brew install cmake libwebsockets pkg-config openssl
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-### Setup & Build
+### Build & Run
 ```bash
-git clone https://github.com/YOUR_USERNAME/riskcore-cpp.git
-cd riskcore-cpp
+git clone https://github.com/nim444/riskcore-cpp.git && cd riskcore-cpp
 
+# Fetch market data
 uv run scripts/fetch_data.py
+
+# Build
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --parallel
-```
 
-### Run
-```bash
-# Single computation (outputs JSON)
+# Single computation (JSON output)
 ./build/riskcore --run
 
-# Live dashboard (2 terminal windows):
-# Terminal 1: Start WebSocket server
+# Live dashboard (2 terminals):
+# Terminal 1:
 ./build/riskcore --serve
 
-# Terminal 2: Start web server
+# Terminal 2:
 python3 -m http.server 8000 --directory web
-
-# Browser: open http://localhost:8000
+# Open http://localhost:8000
 ```
 
-## Project Structure
+## Dashboard Panels
 
-```
-riskcore-cpp/
-├── scripts/
-│   └── fetch_data.py          # yfinance → CSV + JSON
-├── data/
-│   ├── prices.csv             # 1yr daily OHLCV
-│   ├── returns.csv            # daily log returns
-│   └── positions.json         # portfolio config
-├── src/
-│   ├── main.cpp               # CLI & mode dispatch
-│   ├── models.h               # data structures
-│   ├── data_loader.{h,cpp}    # CSV/JSON I/O
-│   ├── risk_engine.{h,cpp}    # VaR, Greeks, Sharpe
-│   └── ws_server.{h,cpp}      # TCP streaming
-├── web/
-│   └── index.html             # interactive dashboard
-├── CMakeLists.txt             # build config
-├── pyproject.toml             # Python deps
-├── .github/
-│   └── workflows/ci.yml       # GitHub Actions
-└── README.md
-```
+1. **Portfolio VaR Trend** — 60-point rolling window with dynamic Y-axis zoom
+2. **Sharpe Rolling** — Real-time ratio with 0.5 target reference line
+3. **VaR Heatmap** — Per-ticker risk sorted by impact (4-tier colour contrast)
+4. **P&L Analysis** — Dollar or percentage mode toggle (all 8 positions readable)
 
-## CLI Commands
+## Technology Stack
 
-```bash
-./build/riskcore --run       # One-time computation (JSON output)
-./build/riskcore --serve     # Start WebSocket server on ws://localhost:8080/stream
-./build/riskcore --version   # Show version
-```
+| Layer | Technology |
+|-------|-----------|
+| **Core** | C++20, STL algorithms, BSD sockets |
+| **Build** | CMake 3.20+, clang++ (Apple Silicon) |
+| **Backend** | libwebsockets, OpenSSL, nlohmann/json |
+| **Frontend** | Vanilla JS, Chart.js, CSS3 |
+| **Data** | Python, yfinance, uv |
 
 ## Configuration
 
-### Adding Custom Positions
-
-1. Edit `scripts/fetch_data.py` and add tickers to the `tickers` list and `position_config` dict:
+### Custom Tickers
+Edit `scripts/fetch_data.py`:
 ```python
 tickers = ["IBM", "GOOG", "NVDA", "MSFT", "AAPL", "TSLA", "AMZN", "META", "YOUR_TICKER"]
-position_config = {
-    "YOUR_TICKER": {"side": "LONG", "quantity": 1000},
-    # ... other positions
-}
+position_config = {"YOUR_TICKER": {"side": "LONG", "quantity": 1000}}
 ```
 
-2. Fetch market data:
+Then: `uv run scripts/fetch_data.py && cmake --build build --parallel && ./build/riskcore --serve`
+
+## CLI Reference
+
 ```bash
-uv run scripts/fetch_data.py
+./build/riskcore --run       # Compute once, output JSON
+./build/riskcore --serve     # Start WebSocket server (port 8080)
+./build/riskcore --version   # Show version
 ```
-
-3. Rebuild and run:
-```bash
-cmake --build build --parallel
-./build/riskcore --serve
-```
-
-Portfolio config format (auto-generated in `data/positions.json`):
-```json
-{
-  "ticker": "IBM",
-  "side": "LONG",
-  "quantity": 5000,
-  "entry_price": 239.84
-}
-```
-
-Any ticker from Yahoo Finance is supported (AAPL, MSFT, JPM, XOM, etc.).
 
 ## Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
-| CMake not found | `brew install cmake` |
-| OpenSSL not found | `brew install openssl` |
 | WebSocket won't connect | Ensure `./build/riskcore --serve` is running on port 8080 |
-| Dashboard shows "undefined" | Refresh browser; web server must run on port 8000 |
-| Port 8080/8000 in use | `lsof -i :8080` / `lsof -i :8000` to find and kill processes |
-| Prices show $0 | Run `uv run scripts/fetch_data.py` to fetch market data |
-| yfinance fails | Ticker invalid or delisted. Check Yahoo Finance |
+| Dashboard shows "undefined" | Verify web server runs on port 8000 |
+| Port conflict | `lsof -i :8080` to find process |
+| $0 prices | Run `uv run scripts/fetch_data.py` to fetch data |
 
 ## License
 
