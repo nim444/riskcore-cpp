@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fetch 1 year of market data for IBM, GOOG, NVDA, X via yfinance.
+"""Fetch 1 year of market data for IBM, GOOG, NVDA, MSFT, AAPL, TSLA, AMZN, META via yfinance.
 
 Usage:
   uv run scripts/fetch_data.py
@@ -17,7 +17,7 @@ data_dir = Path(__file__).parent.parent / "data"
 data_dir.mkdir(exist_ok=True)
 
 # Download 1 year of data
-tickers = ["IBM", "GOOG", "NVDA", "MSFT"]
+tickers = ["IBM", "GOOG", "NVDA", "MSFT", "AAPL", "TSLA", "AMZN", "META"]
 end_date = datetime.now().date()
 start_date = end_date - timedelta(days=365)
 
@@ -74,10 +74,14 @@ print(f"✓ Saved returns to {returns_file}")
 prices_1yr_ago = prices.iloc[0]  # First row = 1 year ago
 
 position_config = {
-    "IBM": {"side": "LONG", "quantity": 500},
-    "GOOG": {"side": "LONG", "quantity": 300},
-    "NVDA": {"side": "LONG", "quantity": 200},
-    "MSFT": {"side": "SHORT", "quantity": 400}
+    "IBM": {"side": "LONG", "quantity": 5000},
+    "GOOG": {"side": "LONG", "quantity": 3000},
+    "NVDA": {"side": "LONG", "quantity": 2000},
+    "MSFT": {"side": "SHORT", "quantity": 4000},
+    "AAPL": {"side": "LONG", "quantity": 3500},
+    "TSLA": {"side": "LONG", "quantity": 1500},
+    "AMZN": {"side": "SHORT", "quantity": 2000},
+    "META": {"side": "LONG", "quantity": 2500}
 }
 
 positions = []

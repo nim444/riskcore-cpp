@@ -11,7 +11,8 @@ FetchContent_Declare(json
 )
 FetchContent_MakeAvailable(json)
 
-# No external WebSocket library needed - using BSD sockets
+# OpenSSL for WebSocket SHA1 handshake
+find_package(OpenSSL REQUIRED)
 
 add_executable(riskcore
   src/main.cpp
@@ -21,5 +22,5 @@ add_executable(riskcore
 )
 
 target_include_directories(riskcore PRIVATE src)
-target_link_libraries(riskcore PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(riskcore PRIVATE nlohmann_json::nlohmann_json OpenSSL::Crypto OpenSSL::SSL)
 target_compile_options(riskcore PRIVATE -O2 -Wall -Wextra)

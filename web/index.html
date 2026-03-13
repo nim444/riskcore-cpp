@@ -14,22 +14,22 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0f1419;
-            color: #e0e6ed;
+            background: #1a1a1a;
+            color: #e0e0e0;
             line-height: 1.6;
         }
 
         header {
-            background: linear-gradient(135deg, #1e2936 0%, #2a3f5f 100%);
-            padding: 1.5rem 2rem;
-            border-bottom: 1px solid #3a4f6f;
+            background: #000000;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #333333;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         header h1 {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: 600;
             letter-spacing: -0.5px;
         }
@@ -60,69 +60,68 @@
 
         .connection-status {
             font-size: 0.9rem;
-            color: #a0aec0;
+            color: #a0a0a0;
         }
 
         .message-bar {
-            background: #1a2332;
-            padding: 1rem 2rem;
-            border-bottom: 1px solid #3a4f6f;
-            font-size: 0.85rem;
-            color: #7a8fa6;
+            background: #252525;
+            padding: 0.7rem 1.5rem;
+            border-bottom: 1px solid #333333;
+            font-size: 0.8rem;
+            color: #888888;
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 2rem;
+            padding: 1.5rem;
         }
 
         .metrics {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
         }
 
         .metric-card {
-            background: #1a2332;
-            border: 1px solid #3a4f6f;
-            border-radius: 8px;
-            padding: 1.5rem;
+            background: #2a2a2a;
+            border: 1px solid #404040;
+            padding: 1rem 1.2rem;
             text-align: center;
         }
 
         .metric-label {
             font-size: 0.85rem;
-            color: #7a8fa6;
+            color: #888888;
             margin-bottom: 0.5rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .metric-value {
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             font-weight: 600;
-            color: #4ade80;
+            color: #00cc88;
             font-family: 'Monaco', 'Courier New', monospace;
+            margin-top: 0.3rem;
         }
 
         .metric-value.negative {
-            color: #ef4444;
+            color: #ff5555;
         }
 
         .charts {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
         }
 
         .chart-container {
-            background: #1a2332;
-            border: 1px solid #3a4f6f;
-            border-radius: 8px;
-            padding: 1.5rem;
+            background: #2a2a2a;
+            border: 1px solid #404040;
+            padding: 1rem 1.2rem;
             position: relative;
         }
 
@@ -130,127 +129,98 @@
             font-size: 0.95rem;
             font-weight: 600;
             margin-bottom: 1rem;
-            color: #cbd5e1;
+            color: #d0d0d0;
         }
 
         .chart-wrapper {
             position: relative;
-            height: 250px;
+            height: 220px;
         }
 
         .tables {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
         }
 
         .table-container {
-            background: #1a2332;
-            border: 1px solid #3a4f6f;
-            border-radius: 8px;
-            padding: 1.5rem;
+            background: #2a2a2a;
+            border: 1px solid #404040;
+            padding: 1rem 1.2rem;
             overflow-x: auto;
         }
 
         .table-title {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 600;
-            margin-bottom: 1rem;
-            color: #cbd5e1;
+            margin-bottom: 0.8rem;
+            color: #d0d0d0;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         th {
-            background: #0f1419;
-            padding: 0.75rem;
+            background: #1a1a1a;
+            padding: 0.5rem 0.7rem;
             text-align: left;
-            color: #7a8fa6;
+            color: #888888;
             font-weight: 600;
-            border-bottom: 1px solid #3a4f6f;
+            border-bottom: 1px solid #404040;
             text-transform: uppercase;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             letter-spacing: 0.5px;
         }
 
         td {
-            padding: 0.75rem;
-            border-bottom: 1px solid #2a3f5f;
+            padding: 0.5rem 0.7rem;
+            border-bottom: 1px solid #333333;
         }
 
         tr:hover {
-            background: #0f1419;
+            background: #1a1a1a;
         }
 
         .badge {
             display: inline-block;
             padding: 0.25rem 0.75rem;
-            border-radius: 4px;
             font-size: 0.8rem;
             font-weight: 600;
         }
 
         .badge.long {
-            background: #065f46;
-            color: #4ade80;
+            background: #1a4d2e;
+            color: #00cc88;
         }
 
         .badge.short {
-            background: #7f1d1d;
-            color: #fca5a5;
+            background: #4d1a1a;
+            color: #ff9999;
         }
 
-        .correlation-grid {
-            display: grid;
-            grid-template-columns: auto repeat(4, 1fr);
-            gap: 4px;
-            margin-top: 1rem;
-        }
-
-        .corr-cell {
-            width: 60px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: white;
-        }
-
-        .corr-header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            color: #7a8fa6;
-        }
-
-        .live-feed {
-            background: #1a2332;
-            border: 1px solid #3a4f6f;
-            border-radius: 8px;
-            padding: 1.5rem;
+.live-feed {
+            background: #2a2a2a;
+            border: 1px solid #404040;
+            padding: 1rem 1.2rem;
+            margin-top: 1.5rem;
         }
 
         .feed-title {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 600;
-            margin-bottom: 1rem;
-            color: #cbd5e1;
+            margin-bottom: 0.8rem;
+            color: #d0d0d0;
         }
 
         .feed-item {
-            padding: 0.75rem;
-            border-bottom: 1px solid #2a3f5f;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid #333333;
             font-size: 0.85rem;
-            color: #7a8fa6;
+            color: #888888;
         }
 
         .feed-item:last-child {
@@ -258,7 +228,7 @@
         }
 
         .feed-time {
-            color: #4ade80;
+            color: #00cc88;
             font-weight: 600;
             font-family: 'Monaco', 'Courier New', monospace;
             font-size: 0.8rem;
@@ -267,7 +237,7 @@
 </head>
 <body>
     <header>
-        <h1>🎯 riskcore</h1>
+        <h1>RISKCORE</h1>
         <div class="header-status">
             <div class="status-dot" id="statusDot"></div>
             <div class="connection-status" id="connectionStatus">Connecting...</div>
@@ -296,6 +266,13 @@
             <div class="metric-card">
                 <div class="metric-label">Calc Time</div>
                 <div class="metric-value" id="calcTime">—</div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <div class="chart-title">Portfolio Risk Trend</div>
+            <div class="chart-wrapper">
+                <canvas id="trendChart"></canvas>
             </div>
         </div>
 
@@ -350,11 +327,6 @@
             </div>
         </div>
 
-        <div class="table-container">
-            <div class="table-title">Correlation Matrix</div>
-            <div id="correlationMatrix"></div>
-        </div>
-
         <div class="live-feed">
             <div class="feed-title">Live Feed (Last 5 Events)</div>
             <div id="liveFeed"></div>
@@ -365,7 +337,9 @@
         let ws = null;
         let charts = {};
         let feedItems = [];
+        let trendData = { timestamps: [], var: [], exposure: [], sharpe: [] };
         const MAX_FEED_ITEMS = 5;
+        const MAX_TREND_POINTS = 60;
 
         function formatCurrency(value) {
             return new Intl.NumberFormat('en-US', {
@@ -390,7 +364,7 @@
         }
 
         function connectWebSocket() {
-            ws = new WebSocket('ws://localhost:8080/riskcore-stream');
+            ws = new WebSocket('ws://localhost:8080/stream');
 
             ws.onopen = () => {
                 document.getElementById('statusDot').classList.remove('offline');
@@ -469,43 +443,13 @@
                 greeksTbody.appendChild(row);
             }
 
-            // Update correlation matrix
-            updateCorrelationMatrix(data.correlation);
-
             // Update charts
             updateVarChart(data.positions);
             updateSharpeChart(data.positions);
+            updateTrendChart(data.portfolio_var, data.net_exposure, data.portfolio_sharpe);
         }
 
-        function updateCorrelationMatrix(correlation) {
-            const tickers = ['IBM', 'GOOG', 'NVDA', 'X'];
-            const container = document.getElementById('correlationMatrix');
-            let html = '<div class="correlation-grid">';
-
-            // Header
-            html += '<div class="corr-header"></div>';
-            for (const ticker of tickers) {
-                html += `<div class="corr-header">${ticker}</div>`;
-            }
-
-            // Rows
-            for (let i = 0; i < correlation.length; ++i) {
-                html += `<div class="corr-header">${tickers[i]}</div>`;
-                for (let j = 0; j < correlation[i].length; ++j) {
-                    const val = correlation[i][j];
-                    const hue = val >= 0 ? 120 : 0;
-                    const saturation = Math.abs(val) * 100;
-                    const lightness = 50 - Math.abs(val) * 20;
-                    const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-                    html += `<div class="corr-cell" style="background: ${color}">${val.toFixed(2)}</div>`;
-                }
-            }
-
-            html += '</div>';
-            container.innerHTML = html;
-        }
-
-        function updateVarChart(positions) {
+function updateVarChart(positions) {
             const ctx = document.getElementById('varChart');
             const labels = positions.map(p => p.ticker);
             const data = positions.map(p => p.var_95);
@@ -582,6 +526,87 @@
                             x: {
                                 grid: { display: false },
                                 ticks: { color: '#7a8fa6' }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateTrendChart(portfolioVAR, netExposure, portfolioSharpe) {
+            // Add new data point
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour12: false }).substring(0, 5);
+            trendData.timestamps.push(timeStr);
+            trendData.var.push(portfolioVAR);
+            trendData.exposure.push(netExposure / 1000000); // Convert to millions
+            trendData.sharpe.push(portfolioSharpe);
+
+            // Keep only last N points
+            if (trendData.timestamps.length > MAX_TREND_POINTS) {
+                trendData.timestamps.shift();
+                trendData.var.shift();
+                trendData.exposure.shift();
+                trendData.sharpe.shift();
+            }
+
+            const ctx = document.getElementById('trendChart');
+            if (charts.trend) {
+                charts.trend.data.labels = trendData.timestamps;
+                charts.trend.data.datasets[0].data = trendData.var;
+                charts.trend.data.datasets[1].data = trendData.exposure;
+                charts.trend.update();
+            } else {
+                charts.trend = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: trendData.timestamps,
+                        datasets: [
+                            {
+                                label: 'Portfolio VaR',
+                                data: trendData.var,
+                                borderColor: '#ff5555',
+                                backgroundColor: 'rgba(255, 85, 85, 0.05)',
+                                tension: 0.3,
+                                fill: true,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'Net Exposure (M)',
+                                data: trendData.exposure,
+                                borderColor: '#00cc88',
+                                backgroundColor: 'rgba(0, 204, 136, 0.05)',
+                                tension: 0.3,
+                                fill: true,
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { display: true, labels: { color: '#888888' } }
+                        },
+                        scales: {
+                            y: {
+                                type: 'linear',
+                                position: 'left',
+                                grid: { color: '#333333' },
+                                ticks: { color: '#888888' },
+                                title: { display: true, text: 'VaR ($)', color: '#888888' }
+                            },
+                            y1: {
+                                type: 'linear',
+                                position: 'right',
+                                grid: { drawOnChartArea: false },
+                                ticks: { color: '#888888' },
+                                title: { display: true, text: 'Exposure (M$)', color: '#888888' }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: '#888888' }
                             }
                         }
                     }
