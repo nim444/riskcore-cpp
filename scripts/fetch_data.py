@@ -5,12 +5,13 @@ Usage:
   uv run scripts/fetch_data.py
 """
 
-import yfinance as yf
-import pandas as pd
-import numpy as np
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import yfinance as yf
 
 # Create data directory
 data_dir = Path(__file__).parent.parent / "data"
@@ -27,8 +28,9 @@ print(f"Fetching {len(tickers)} tickers from {start_date} to {end_date}...")
 prices_dict = {}
 for ticker in tickers:
     try:
-        data = yf.download(ticker, start=str(start_date), end=str(end_date),
-                          progress=False)
+        data = yf.download(
+            ticker, start=str(start_date), end=str(end_date), progress=False
+        )
         if len(data) > 0:
             # Extract Close price - yfinance returns MultiIndex columns
             if isinstance(data, pd.DataFrame):
@@ -74,14 +76,14 @@ print(f"✓ Saved returns to {returns_file}")
 prices_1yr_ago = prices.iloc[0]  # First row = 1 year ago
 
 position_config = {
-    "IBM": {"side": "LONG", "quantity": 5000},
-    "GOOG": {"side": "LONG", "quantity": 3000},
-    "NVDA": {"side": "LONG", "quantity": 2000},
-    "MSFT": {"side": "SHORT", "quantity": 4000},
-    "AAPL": {"side": "LONG", "quantity": 3500},
-    "TSLA": {"side": "LONG", "quantity": 1500},
-    "AMZN": {"side": "SHORT", "quantity": 2000},
-    "META": {"side": "LONG", "quantity": 2500}
+    "IBM": {"side": "LONG", "quantity": 3000},
+    "GOOG": {"side": "LONG", "quantity": 1500},
+    "NVDA": {"side": "SHORT", "quantity": 500},  # reduce short size
+    "MSFT": {"side": "LONG", "quantity": 1200},
+    "AAPL": {"side": "LONG", "quantity": 2000},
+    "TSLA": {"side": "SHORT", "quantity": 800},  # reduce short size
+    "AMZN": {"side": "LONG", "quantity": 1800},
+    "META": {"side": "LONG", "quantity": 600},
 }
 
 positions = []
@@ -93,12 +95,14 @@ for ticker, config in position_config.items():
     else:
         entry_price = round(float(prices_1yr_ago[ticker]), 2)
 
-    positions.append({
-        "ticker": ticker,
-        "side": config["side"],
-        "quantity": config["quantity"],
-        "entry_price": entry_price
-    })
+    positions.append(
+        {
+            "ticker": ticker,
+            "side": config["side"],
+            "quantity": config["quantity"],
+            "entry_price": entry_price,
+        }
+    )
 
 positions_file = data_dir / "positions.json"
 with open(positions_file, "w") as f:
