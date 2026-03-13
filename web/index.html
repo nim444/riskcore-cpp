@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>riskcore — Equity Risk Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f1419;
+            color: #e0e6ed;
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e2936 0%, #2a3f5f 100%);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #3a4f6f;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .header-status {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.offline {
+            background: #ef4444;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .connection-status {
+            font-size: 0.9rem;
+            color: #a0aec0;
+        }
+
+        .message-bar {
+            background: #1a2332;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #3a4f6f;
+            font-size: 0.85rem;
+            color: #7a8fa6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: #1a2332;
+            border: 1px solid #3a4f6f;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .metric-label {
+            font-size: 0.85rem;
+            color: #7a8fa6;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #4ade80;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+
+        .metric-value.negative {
+            color: #ef4444;
+        }
+
+        .charts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-container {
+            background: #1a2332;
+            border: 1px solid #3a4f6f;
+            border-radius: 8px;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .chart-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #cbd5e1;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 250px;
+        }
+
+        .tables {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .table-container {
+            background: #1a2332;
+            border: 1px solid #3a4f6f;
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow-x: auto;
+        }
+
+        .table-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #cbd5e1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: #0f1419;
+            padding: 0.75rem;
+            text-align: left;
+            color: #7a8fa6;
+            font-weight: 600;
+            border-bottom: 1px solid #3a4f6f;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #2a3f5f;
+        }
+
+        tr:hover {
+            background: #0f1419;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge.long {
+            background: #065f46;
+            color: #4ade80;
+        }
+
+        .badge.short {
+            background: #7f1d1d;
+            color: #fca5a5;
+        }
+
+        .correlation-grid {
+            display: grid;
+            grid-template-columns: auto repeat(4, 1fr);
+            gap: 4px;
+            margin-top: 1rem;
+        }
+
+        .corr-cell {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .corr-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #7a8fa6;
+        }
+
+        .live-feed {
+            background: #1a2332;
+            border: 1px solid #3a4f6f;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .feed-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #cbd5e1;
+        }
+
+        .feed-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #2a3f5f;
+            font-size: 0.85rem;
+            color: #7a8fa6;
+        }
+
+        .feed-item:last-child {
+            border-bottom: none;
+        }
+
+        .feed-time {
+            color: #4ade80;
+            font-weight: 600;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🎯 riskcore</h1>
+        <div class="header-status">
+            <div class="status-dot" id="statusDot"></div>
+            <div class="connection-status" id="connectionStatus">Connecting...</div>
+            <div style="font-size: 0.85rem; color: #7a8fa6;" id="clockDisplay">00:00:00</div>
+        </div>
+    </header>
+
+    <div class="message-bar" id="messageBar">
+        Waiting for first message...
+    </div>
+
+    <div class="container">
+        <div class="metrics">
+            <div class="metric-card">
+                <div class="metric-label">Portfolio VaR</div>
+                <div class="metric-value" id="portfolioVar">—</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Net Exposure</div>
+                <div class="metric-value" id="netExposure">—</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Sharpe Ratio</div>
+                <div class="metric-value" id="sharpeRatio">—</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Calc Time</div>
+                <div class="metric-value" id="calcTime">—</div>
+            </div>
+        </div>
+
+        <div class="charts">
+            <div class="chart-container">
+                <div class="chart-title">VaR by Ticker</div>
+                <div class="chart-wrapper">
+                    <canvas id="varChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-container">
+                <div class="chart-title">Sharpe Ratio by Ticker</div>
+                <div class="chart-wrapper">
+                    <canvas id="sharpeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="tables">
+            <div class="table-container">
+                <div class="table-title">Positions</div>
+                <table id="positionsTable">
+                    <thead>
+                        <tr>
+                            <th>Ticker</th>
+                            <th>Side</th>
+                            <th>Qty</th>
+                            <th>Price</th>
+                            <th>VaR 95%</th>
+                            <th>P&L</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <div class="table-container">
+                <div class="table-title">Greeks</div>
+                <table id="greeksTable">
+                    <thead>
+                        <tr>
+                            <th>Ticker</th>
+                            <th>Delta</th>
+                            <th>Gamma</th>
+                            <th>Vega</th>
+                            <th>Theta</th>
+                            <th>IV %</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="table-title">Correlation Matrix</div>
+            <div id="correlationMatrix"></div>
+        </div>
+
+        <div class="live-feed">
+            <div class="feed-title">Live Feed (Last 5 Events)</div>
+            <div id="liveFeed"></div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let charts = {};
+        let feedItems = [];
+        const MAX_FEED_ITEMS = 5;
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                maximumFractionDigits: 0
+            }).format(value);
+        }
+
+        function formatPercent(value) {
+            return (value * 100).toFixed(2) + '%';
+        }
+
+        function formatNumber(value) {
+            return value.toLocaleString('en-US', { maximumFractionDigits: 2 });
+        }
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clockDisplay').textContent =
+                now.toLocaleTimeString('en-US', { hour12: false });
+        }
+
+        function connectWebSocket() {
+            ws = new WebSocket('ws://localhost:8080/riskcore-stream');
+
+            ws.onopen = () => {
+                document.getElementById('statusDot').classList.remove('offline');
+                document.getElementById('connectionStatus').textContent = 'Connected';
+                addFeedItem('WebSocket connected');
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    updateDashboard(data);
+                    addFeedItem(`Updated at ${new Date().toLocaleTimeString('en-US', { hour12: false })}`);
+                } catch (error) {
+                    console.error('Failed to parse message:', error);
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                document.getElementById('messageBar').textContent = 'WebSocket error';
+            };
+
+            ws.onclose = () => {
+                document.getElementById('statusDot').classList.add('offline');
+                document.getElementById('connectionStatus').textContent = 'Disconnected';
+                addFeedItem('WebSocket disconnected, reconnecting...');
+                setTimeout(connectWebSocket, 3000);
+            };
+        }
+
+        function updateDashboard(data) {
+            // Update metrics
+            document.getElementById('portfolioVar').textContent = formatCurrency(data.portfolio_var);
+            document.getElementById('netExposure').textContent = formatCurrency(data.net_exposure);
+            document.getElementById('calcTime').textContent = data.calc_time_ms.toFixed(1) + 'ms';
+
+            const sharpeEl = document.getElementById('sharpeRatio');
+            sharpeEl.textContent = data.portfolio_sharpe.toFixed(2);
+            sharpeEl.classList.toggle('negative', data.portfolio_sharpe < 0);
+
+            // Update message bar
+            document.getElementById('messageBar').textContent =
+                `Last update: ${data.timestamp} | Calc time: ${data.calc_time_ms.toFixed(1)}ms`;
+
+            // Update positions table
+            const positionsTbody = document.querySelector('#positionsTable tbody');
+            positionsTbody.innerHTML = '';
+            for (const pos of data.positions) {
+                const row = document.createElement('tr');
+                const badgeClass = pos.side === 'LONG' ? 'long' : 'short';
+                row.innerHTML = `
+                    <td><strong>${pos.ticker}</strong></td>
+                    <td><span class="badge ${badgeClass}">${pos.side}</span></td>
+                    <td>${pos.quantity}</td>
+                    <td>${formatNumber(pos.price || 0)}</td>
+                    <td>${formatCurrency(pos.var_95)}</td>
+                    <td style="color: ${pos.pnl >= 0 ? '#4ade80' : '#ef4444'}">${formatCurrency(pos.pnl)}</td>
+                `;
+                positionsTbody.appendChild(row);
+            }
+
+            // Update Greeks table
+            const greeksTbody = document.querySelector('#greeksTable tbody');
+            greeksTbody.innerHTML = '';
+            for (const pos of data.positions) {
+                const g = pos.greeks;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${pos.ticker}</strong></td>
+                    <td>${formatNumber(g.delta)}</td>
+                    <td>${formatNumber(g.gamma)}</td>
+                    <td>${formatNumber(g.vega)}</td>
+                    <td>${formatNumber(g.theta)}</td>
+                    <td>${formatNumber(g.iv)}</td>
+                `;
+                greeksTbody.appendChild(row);
+            }
+
+            // Update correlation matrix
+            updateCorrelationMatrix(data.correlation);
+
+            // Update charts
+            updateVarChart(data.positions);
+            updateSharpeChart(data.positions);
+        }
+
+        function updateCorrelationMatrix(correlation) {
+            const tickers = ['IBM', 'GOOG', 'NVDA', 'X'];
+            const container = document.getElementById('correlationMatrix');
+            let html = '<div class="correlation-grid">';
+
+            // Header
+            html += '<div class="corr-header"></div>';
+            for (const ticker of tickers) {
+                html += `<div class="corr-header">${ticker}</div>`;
+            }
+
+            // Rows
+            for (let i = 0; i < correlation.length; ++i) {
+                html += `<div class="corr-header">${tickers[i]}</div>`;
+                for (let j = 0; j < correlation[i].length; ++j) {
+                    const val = correlation[i][j];
+                    const hue = val >= 0 ? 120 : 0;
+                    const saturation = Math.abs(val) * 100;
+                    const lightness = 50 - Math.abs(val) * 20;
+                    const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+                    html += `<div class="corr-cell" style="background: ${color}">${val.toFixed(2)}</div>`;
+                }
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function updateVarChart(positions) {
+            const ctx = document.getElementById('varChart');
+            const labels = positions.map(p => p.ticker);
+            const data = positions.map(p => p.var_95);
+
+            if (charts.var) {
+                charts.var.data.labels = labels;
+                charts.var.data.datasets[0].data = data;
+                charts.var.update();
+            } else {
+                charts.var = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'VaR (95%)',
+                            data: data,
+                            backgroundColor: '#3b82f6',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                grid: { color: '#2a3f5f' },
+                                ticks: { color: '#7a8fa6' }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: '#7a8fa6' }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateSharpeChart(positions) {
+            const ctx = document.getElementById('sharpeChart');
+            const labels = positions.map(p => p.ticker);
+            const data = positions.map(p => p.sharpe);
+
+            if (charts.sharpe) {
+                charts.sharpe.data.labels = labels;
+                charts.sharpe.data.datasets[0].data = data;
+                charts.sharpe.update();
+            } else {
+                charts.sharpe = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Sharpe Ratio',
+                            data: data,
+                            backgroundColor: data.map(d => d >= 0 ? '#4ade80' : '#ef4444'),
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                grid: { color: '#2a3f5f' },
+                                ticks: { color: '#7a8fa6' }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: '#7a8fa6' }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function addFeedItem(text) {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+            feedItems.unshift({ time: timeStr, text: text });
+            feedItems = feedItems.slice(0, MAX_FEED_ITEMS);
+
+            const feed = document.getElementById('liveFeed');
+            feed.innerHTML = feedItems
+                .map(item => `<div class="feed-item"><span class="feed-time">${item.time}</span> — ${item.text}</div>`)
+                .join('');
+        }
+
+        // Initialize
+        setInterval(updateClock, 1000);
+        updateClock();
+        connectWebSocket();
+    </script>
+</body>
+</html>

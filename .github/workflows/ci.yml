@@ -1,0 +1,25 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: brew install libwebsockets pkg-config cmake
+
+      - name: Install Python deps and fetch market data
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv run scripts/fetch_data.py
+
+      - name: Build
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --parallel
+
+      - name: Smoke test
+        run: ./build/riskcore --run

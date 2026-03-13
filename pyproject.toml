@@ -1,0 +1,14 @@
+[project]
+name = "riskcore-cpp"
+version = "0.1.0"
+description = "C++ equity risk engine with Python data fetcher"
+requires-python = ">=3.8"
+dependencies = [
+    "yfinance>=0.2.0",
+    "pandas>=1.5.0",
+    "numpy>=1.24.0",
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"

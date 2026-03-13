@@ -1,0 +1,26 @@
+[
+  {
+    "ticker": "IBM",
+    "side": "LONG",
+    "quantity": 500,
+    "entry_price": 239.84
+  },
+  {
+    "ticker": "GOOG",
+    "side": "LONG",
+    "quantity": 300,
+    "entry_price": 164.16
+  },
+  {
+    "ticker": "NVDA",
+    "side": "LONG",
+    "quantity": 200,
+    "entry_price": 115.55
+  },
+  {
+    "ticker": "MSFT",
+    "side": "SHORT",
+    "quantity": 400,
+    "entry_price": 375.89
+  }
+]
