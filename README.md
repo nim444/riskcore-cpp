@@ -129,6 +129,10 @@ Then: `uv run scripts/fetch_data.py && cmake --build build --parallel && ./build
 ./build/riskcore --version   # Show version
 ```
 
+## Documentation
+
+- [Distributed Architecture Extension](riskcore-distributed-extension.md) — Design for multi-node risk computation and federated analytics
+
 ## Troubleshooting
 
 | Issue | Solution |
